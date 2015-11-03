@@ -1,0 +1,118 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_material_dark"
+    android:orientation="vertical"
+    tools:context="com.example.gregor.animecalender.Activities.AnimeDetailActivity">
+
+    <include layout="@layout/toolbar_layout" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.example.gregor.animecalender.View.ProportionalImageView
+            android:id="@+id/anime_detail_image"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:scaleType="fitXY" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/anime_detail_anime_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/primary_text_default_material_dark" />
+
+            <TextView
+                android:id="@+id/anime_detail_anime_japanese_title"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:textColor="@color/primary_text_default_material_dark"
+                android:textSize="8dp" />
+
+            <TextView
+                android:id="@+id/anime_detail_total_episodes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/primary_text_default_material_dark" />
+
+            <TextView
+                android:id="@+id/anime_detail_anime_start_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/primary_text_default_material_dark" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="?android:attr/listSeparatorTextViewStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/background_floating_material_dark"
+                android:paddingBottom="5dp"
+                android:paddingTop="5dp"
+                android:text="@string/anime_detail_description_title"
+                android:textColor="@color/secondary_text_default_material_dark" />
+
+            <TextView
+                android:id="@+id/anime_detail_anime_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/secondary_text_default_material_dark" />
+
+            <TextView
+                style="?android:attr/listSeparatorTextViewStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/background_floating_material_dark"
+                android:paddingBottom="5dp"
+                android:paddingTop="5dp"
+                android:text="@string/anime_detail_genre_title"
+                android:textColor="@color/secondary_text_default_material_dark" />
+
+
+            <com.example.gregor.animecalender.View.ExpandableHeightListView
+                android:id="@+id/anime_detail_gerne_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                style="?android:attr/listSeparatorTextViewStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/background_floating_material_dark"
+                android:paddingBottom="5dp"
+                android:paddingTop="5dp"
+                android:text="@string/anime_detail_character_title"
+                android:textColor="@color/secondary_text_default_material_dark" />
+
+            <ListView
+                android:id="@+id/anime_detail_character_list"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

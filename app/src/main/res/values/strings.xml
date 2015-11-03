@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">AnimeCalender</string>
+    <string name="title_activity_main">Anime Calender</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="edit_message">Edit</string>
+    <string name="button_send">Send</string>
+    <string name="title_activity_display_message">My Message</string>
+    <string name="action_close">Close</string>
+    <string name="action_calender">Anime Calender</string>
+    <string name="anime_season_list_title">Currently airing anime</string>
+    <string name="title_activity_anime_detail">AnimeDetailActivity</string>
+    <string name="anime_detail_description_title">Description</string>
+    <string name="anime_detail_genre_title">Gerne</string>
+    <string name="anime_detail_character_title">Characters</string>
+    <string name="title_activity_anime_list">AnimeListActivity</string>
+    <string name="anime_list_title">Anime list</string>
+    <string name="action_list">Anime List</string>
+    <string name="action_list_search">Search</string>
+    <string name="anime_list_activity_title">Anime list</string>
+    <string name="anime_main_activity_title">Seasonal anime</string>
+    <string name="anime_detail_activity_title">Anime detail screen</string>
+</resources>

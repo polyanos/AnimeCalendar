@@ -1,0 +1,27 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.gregor.animecalender.Activities.MainActivity">
+    <item
+        android:id="@+id/action_main_settings"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_main_close"
+        android:orderInCategory="100"
+        android:title="@string/action_close"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_main_view_list"
+        android:icon="@drawable/ic_action_list"
+        android:title="@string/action_list"
+        android:onClick="loadList"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_main_view_calander"
+        android:icon="@drawable/ic_action_calander"
+        android:title="@string/action_calender"
+        android:onClick="loadCalander"
+        app:showAsAction="ifRoom"/>
+</menu>
