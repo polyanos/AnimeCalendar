@@ -9,15 +9,18 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import com.example.gregor.animecalender.Utility.ImageLoader;
 import com.example.gregor.animecalender.Domain.Anime;
 import com.example.gregor.animecalender.Domain.ImageToLoad;
 import com.example.gregor.animecalender.R;
+import com.example.gregor.animecalender.Utility.AnilistApi;
+import com.example.gregor.animecalender.Utility.AnimeTitleComparator;
+import com.example.gregor.animecalender.Utility.FileCache;
+import com.example.gregor.animecalender.Utility.ImageLoader;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -161,28 +164,28 @@ public class AnimeSeasonListAdapter extends BaseAdapter {
      * {@link LayoutInflater#inflate(int, ViewGroup, boolean)}
      * to specify a root view and to prevent attachment to the root.
      *
-     * @param position    The position of the item within the adapter's data set of the item whose view
-     *                    we want.
-     * @param view The old view to reuse, if possible. Note: You should check that this view
-     *                    is non-null and of an appropriate type before using. If it is not possible to convert
-     *                    this view to display the correct data, this method can create a new view.
-     *                    Heterogeneous lists can specify their number of view types, so that this View is
-     *                    always of the right type (see {@link #getViewTypeCount()} and
-     *                    {@link #getItemViewType(int)}).
-     * @param parent      The parent that this view will eventually be attached to
+     * @param position The position of the item within the adapter's data set of the item whose view
+     *                 we want.
+     * @param view     The old view to reuse, if possible. Note: You should check that this view
+     *                 is non-null and of an appropriate type before using. If it is not possible to convert
+     *                 this view to display the correct data, this method can create a new view.
+     *                 Heterogeneous lists can specify their number of view types, so that this View is
+     *                 always of the right type (see {@link #getViewTypeCount()} and
+     *                 {@link #getItemViewType(int)}).
+     * @param parent   The parent that this view will eventually be attached to
      * @return A View corresponding to the data at the specified position.
      */
     @Override
     public View getView(int position, View view, ViewGroup parent) {
         Anime anime = animeItems.get(position);
-        if(view == null) {
+        if (view == null) {
             view = inflater.inflate(R.layout.season_anime_tile, parent, false);
         }
 
         TextView textView = (TextView) view.findViewById(R.id.anime_tile_title);
         textView.setText(anime.getRomanjiTitle());
         ImageView imageView = (ImageView) view.findViewById(R.id.anime_tile_image);
-        imageLoader.ShowImage(imageView, new ImageToLoad(anime.getImageFileName(), anime.getImageUrl(), true));
+        imageLoader.ShowImage(imageView, new ImageToLoad(String.valueOf(anime.getId()), new FileCache(null).getStandardAnimeImageDirectory(), anime.getImageUrl(), true), new AnilistApi(null));
         return view;
     }
 
@@ -234,9 +237,19 @@ public class AnimeSeasonListAdapter extends BaseAdapter {
 
     public void addItem(Anime animeItem) {
         animeItems.add(animeItem);
+        sortList();
     }
 
     public void addAnimesToList(List<Anime> animeItems) {
         this.animeItems.addAll(animeItems);
+        sortList();
+    }
+
+    public void clear(){
+        this.animeItems.clear();
+    }
+
+    private void sortList() {
+        Collections.sort(animeItems, new AnimeTitleComparator());
     }
 }

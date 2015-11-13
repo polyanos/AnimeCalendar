@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">AnimeCalender</string>
+    <string name="title_activity_main">Anime Calender</string>
+    <string name="action_settings">Instellingen</string>
+    <string name="action_close">Afsluiten</string>
+    <string name="action_calender">Anime Kalender</string>
+    <string name="anime_season_list_title">Anime die momenteel op tv zijn</string>
+    <string name="title_activity_anime_detail">Anime Detail Weergaven</string>
+    <string name="anime_detail_description_title">Omschrijving</string>
+    <string name="anime_detail_genre_title">Gerne</string>
+    <string name="anime_detail_character_title">Caracters</string>
+    <string name="title_activity_anime_list">Anime Lijst Weergaven</string>
+    <string name="anime_list_title">Anime Lijst</string>
+    <string name="action_list">Anime Lijst</string>
+    <string name="action_list_search">Zoeken</string>
+    <string name="anime_list_activity_title">Anime Lijst Weergaven</string>
+    <string name="anime_main_activity_title">Seizoens Anime</string>
+    <string name="anime_detail_activity_title">Anime Detail Schemr</string>
+    <string name="anime_list_search_hint">Zoeken...</string>
+    <string name="anime_list_title_found">Gevonden anime:</string>
+    <string name="anime_list_title_not_found">Geen anime gevonden.</string>
+    <string name="anime_detail_tag_title">Categorieën</string>
+    <string name="anime_season_search_year_title">Jaar</string>
+    <string name="anime_season_search_season_title">Seizoen</string>
+    <string name="anime_season_search_title">Laad seizoens data.</string>
+    <string name="anime_season_search_button">Laad anime</string>
+    <string name="anime_season_search_no_found">Geen anime gevonden.</string>
+    <string name="anime_season_search_found">Gevonden anime</string>
+</resources>

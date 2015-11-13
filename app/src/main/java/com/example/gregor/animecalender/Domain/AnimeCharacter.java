@@ -4,29 +4,24 @@ package com.example.gregor.animecalender.Domain;
  * Created by Gregor on 2-11-2015.
  */
 public class AnimeCharacter {
-    String firstName, lastName, imageName;
+    String name, url;
     int id;
 
-    public AnimeCharacter(String firstName, String lastName, int id){
-        this.firstName = firstName;
-        this.lastName = lastName;
+    public AnimeCharacter(String name, int id){
+        this.name = name;
         this.id = id;
-        this.imageName = "c" + id + ".jpg";
     }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public String getImageName() {
-        return imageName;
-    }
+    public String getName(){return name;}
 
     public int getId() {
         return id;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

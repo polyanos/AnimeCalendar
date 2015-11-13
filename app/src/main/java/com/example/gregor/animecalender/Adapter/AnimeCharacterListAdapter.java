@@ -5,50 +5,33 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.gregor.animecalender.Domain.Anime;
+import com.example.gregor.animecalender.Domain.AnimeCharacter;
+import com.example.gregor.animecalender.Domain.ImageToLoad;
 import com.example.gregor.animecalender.R;
-import com.example.gregor.animecalender.Utility.AnimeTitleComparator;
+import com.example.gregor.animecalender.Utility.Interface.Api;
+import com.example.gregor.animecalender.Domain.Dimension;
+import com.example.gregor.animecalender.Utility.FileCache;
+import com.example.gregor.animecalender.Utility.ImageLoader;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by Gregor on 3-11-2015.
+ * Created by Gregor on 12-11-2015.
  */
-public class AnimeListAdapter extends BaseAdapter {
-    private List<Anime> originalList;
-    private List<Anime> foundItemList;
-    private Context context;
-    private boolean useResults;
+public class AnimeCharacterListAdapter extends BaseAdapter {
+    List<AnimeCharacter> characterList;
+    Context context;
+    Api api;
 
-    public AnimeListAdapter(Context context) {
-        this(context, new ArrayList<Anime>());
-    }
-
-    public AnimeListAdapter(Context context, List<Anime> animeList) {
+    public AnimeCharacterListAdapter(Context context, Api api) {
+        this.api = api;
         this.context = context;
-        originalList = animeList;
-        foundItemList = new ArrayList<>();
-        useResults = false;
-    }
-
-    public void searchAnime(String searchString) {
-        foundItemList.clear();
-        if (searchString == null || searchString.isEmpty()) {
-            useResults = false;
-        } else {
-            useResults = true;
-            for (Anime anime : originalList) {
-                if (anime.getRomanjiTitle().toLowerCase().contains(searchString.toLowerCase())) {
-                    foundItemList.add(anime);
-                }
-            }
-        }
-        notifyDataSetChanged();
+        characterList = new ArrayList<>();
     }
 
     /**
@@ -58,7 +41,7 @@ public class AnimeListAdapter extends BaseAdapter {
      */
     @Override
     public int getCount() {
-        return relevantList().size();
+        return characterList.size();
     }
 
     /**
@@ -69,8 +52,8 @@ public class AnimeListAdapter extends BaseAdapter {
      * @return The data at the specified position.
      */
     @Override
-    public Anime getItem(int position) {
-        return relevantList().get(position);
+    public AnimeCharacter getItem(int position) {
+        return characterList.get(position);
     }
 
     /**
@@ -81,7 +64,7 @@ public class AnimeListAdapter extends BaseAdapter {
      */
     @Override
     public long getItemId(int position) {
-        return (long) getItem(position).getId();
+        return getItem(position).getId();
     }
 
     /**
@@ -104,40 +87,29 @@ public class AnimeListAdapter extends BaseAdapter {
      */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View view;
-        if (convertView != null) {
-            view = convertView;
-        } else {
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(R.layout.anime_list_listitem, parent, false);
-        }
+        AnimeCharacter character = characterList.get(position);
+        ImageLoader imageLoader = new ImageLoader(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View characterView = inflater.inflate(R.layout.anime_character_item, parent, false);
+        ImageView imageView = (ImageView) characterView.findViewById(R.id.anime_detail_character_item_image);
 
-        ((TextView) view.findViewById(R.id.anime_list_list_text)).setText(getItem(position).getRomanjiTitle());
+        int imageWidth = (int)context.getResources().getDimension(R.dimen.character_image_size_width);
+        int imageHeight = (int)context.getResources().getDimension(R.dimen.character_image_size_height);
+        Dimension dimension = new Dimension(imageWidth, imageHeight);
+        ImageToLoad imageToLoad = new ImageToLoad(String.valueOf(character.getId()), new FileCache(null).getStandardCharacterImageDirectory(), character.getUrl(), true, true, dimension);
 
-        return view;
+        ((TextView) characterView.findViewById(R.id.anime_detail_character_item_name)).setText(character.getName());
+        imageLoader.ShowImage(imageView, imageToLoad, api);
+        return characterView;
     }
 
-    @Override
-    public boolean hasStableIds() {
-        return true;
-    }
-
-    public void addAnime(Anime anime) {
-        originalList.add(anime);
-        sortList(originalList);
-    }
-
-    public void addAllAnime(Collection<Anime> animeCollection) {
-        originalList.addAll(animeCollection);
-        sortList(originalList);
-    }
-
-    private void sortList(List<Anime> animeList) {
-        Collections.sort(relevantList(), new AnimeTitleComparator());
+    public void addCharacter(AnimeCharacter character) {
+        characterList.add(character);
         notifyDataSetChanged();
     }
 
-    private List<Anime> relevantList() {
-        return useResults ? foundItemList : originalList;
+    public void addCharacters(Collection<AnimeCharacter> characterCollection) {
+        characterList.addAll(characterCollection);
+        notifyDataSetChanged();
     }
 }

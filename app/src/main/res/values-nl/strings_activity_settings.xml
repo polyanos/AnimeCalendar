@@ -1,0 +1,23 @@
+<resources>
+    <string name="title_activity_settings">Applicatie opties</string>
+    <string name="pref_show_images_title">Laat afbeeldingen zien?</string>
+    <string name="pref_show_images_summary_off">Aflbeeldingen worden niet meer geladen.</string>
+    <string name="pref_show_images_summary_on">Afbeeldingen worden geladen. Dit kan extra data verbruiken</string>
+    <string name="pref_show_images_text_on">Aan</string>
+    <string name="pref_show_image_text_off">Uit</string>
+    <string name="pref_language_title">Taal</string>
+    <string name="pref_header_general">Algemene opties</string>
+    <string name="pref_header_storage">Cache opties</string>
+    <string name="pref_clear_image_cache_summary">Deze actie verwijderd alle opgeslagen afbeeldingen.</string>
+    <string name="pref_clear_image_cache_title">Afbeeldingen cache legen</string>
+    <string name="pref_clear_xml_cache_title">XML cache legen</string>
+    <string name="pref_clear_xml_cache_summary">Deze actie verwijderd alle opgeslagen xml data bestanden.</string>
+    <string-array name="pref_language_titles">
+        <item>Engels</item>
+        <item>Nederlands</item>
+    </string-array>
+    <string-array name="pref_language_values">
+        <item>en</item>
+        <item>nl</item>
+    </string-array>
+</resources>

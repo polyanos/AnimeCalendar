@@ -2,34 +2,34 @@ package com.example.gregor.animecalender.Activities;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.gregor.animecalender.Adapter.AnimeListAdapter;
+import com.example.gregor.animecalender.Adapter.NavigationDrawerListAdapter;
 import com.example.gregor.animecalender.Domain.Anime;
 import com.example.gregor.animecalender.R;
-import com.example.gregor.animecalender.Utility.AnimeTitleHandler;
+import com.example.gregor.animecalender.Utility.AniDBApi;
+import com.example.gregor.animecalender.Utility.DrawerUtil;
 
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
 public class AnimeListActivity extends AppCompatActivity {
 
@@ -47,12 +47,15 @@ public class AnimeListActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+            window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
         }
 
+        DrawerUtil.setNavigationDrawerAdapter(this.getClass(), (ListView) findViewById(R.id.left_drawer));
 
         animeListAdapter = new AnimeListAdapter(this);
         ((ListView) findViewById(R.id.anime_list_list)).setAdapter(animeListAdapter);
+        ((ListView) findViewById(R.id.anime_list_list)).setOnItemClickListener(new AnimeListClickListener());
+        ((EditText) findViewById(R.id.anime_list_search_textbox)).addTextChangedListener(new SerachListener());
 
         new LoadAnimeListTask(this).execute();
     }
@@ -70,11 +73,63 @@ public class AnimeListActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        return super.onOptionsItemSelected(item);
+        switch (id) {
+            case R.id.action_anime_list_search:
+                View searchTextBoxView = findViewById(R.id.anime_list_search_textbox);
+                InputMethodManager manager = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (searchTextBoxView.getVisibility() == View.VISIBLE) {
+                    manager.hideSoftInputFromWindow(searchTextBoxView.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                    searchTextBoxView.setVisibility(View.GONE);
+                    searchTextBoxView.clearFocus();
+                    findViewById(R.id.anime_list_list).requestFocus();
+                } else {
+                    searchTextBoxView.setVisibility(View.VISIBLE);
+                    searchTextBoxView.requestFocus();
+                    manager.showSoftInput(searchTextBoxView, InputMethodManager.SHOW_IMPLICIT);
+                }
+        }
+        return false;
     }
 
-    public void searchAnime(MenuItem item) {
+    public void loadDetailPage(int id) {
+        Intent intent = new Intent(this.getApplicationContext(), AnimeDetailActivity.class);
+        intent.putExtra("ANIME_ID", id);
+        intent.putExtra("ANIME_API", AniDBApi.NAME);
+
+        startActivity(intent);
+    }
+
+    private void searchAnime(String searchString) {
+        animeListAdapter.searchAnime(searchString);
+        TextView listTitle = (TextView) findViewById(R.id.anime_list_list_title);
+        if (searchString.isEmpty()) {
+            listTitle.setText(R.string.anime_list_title);
+        } else if (animeListAdapter.getCount() > 0) {
+            listTitle.setText(R.string.anime_list_title_found);
+        } else {
+            listTitle.setText(R.string.anime_list_title_not_found);
+        }
+    }
+
+    public class AnimeListClickListener implements ListView.OnItemClickListener {
+        /**
+         * Callback method to be invoked when an item in this AdapterView has
+         * been clicked.
+         * <p/>
+         * Implementers can call getItemAtPosition(position) if they need
+         * to access the data associated with the selected item.
+         *
+         * @param parent   The AdapterView where the click happened.
+         * @param view     The view within the AdapterView that was clicked (this
+         *                 will be a view provided by the adapter)
+         * @param position The position of the view in the adapter.
+         * @param id       The row id of the item that was clicked.
+         */
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            int animeId = (int) id;
+            loadDetailPage(animeId);
+        }
     }
 
     public class LoadAnimeListTask extends AsyncTask<Void, Void, List<Anime>> {
@@ -114,21 +169,8 @@ public class AnimeListActivity extends AppCompatActivity {
          */
         @Override
         protected List<Anime> doInBackground(Void... params) {
-            List<Anime> animeList = new ArrayList<>();
-            try {
-                AnimeTitleHandler xmlParserHandler = new AnimeTitleHandler();
-                SAXParserFactory factory = SAXParserFactory.newInstance();
-                SAXParser parser = factory.newSAXParser();
-                parser.parse(getAssets().open("anime-titles.xml"), xmlParserHandler);
-
-                animeList = xmlParserHandler.getRetrievedAnime();
-            } catch (ParserConfigurationException | SAXException ex) {
-                Log.e(TAG, "There was an error while loading the parser. The exact error message was: " + ex.getMessage());
-            } catch (IOException ex) {
-                Log.e(TAG, "The xml file was not found or could not be opened.");
-            }
-
-            return animeList;
+            AniDBApi aniDBApi = new AniDBApi(context.getApplicationContext());
+            return aniDBApi.loadAnimeTitles();
         }
 
         /**
@@ -146,6 +188,64 @@ public class AnimeListActivity extends AppCompatActivity {
         protected void onPostExecute(List<Anime> animeList) {
             animeListAdapter.addAllAnime(animeList);
             mdialog.dismiss();
+        }
+    }
+
+    private class SerachListener implements TextWatcher {
+        /**
+         * This method is called to notify you that, within <code>s</code>,
+         * the <code>count</code> characters beginning at <code>start</code>
+         * are about to be replaced by new text with length <code>after</code>.
+         * It is an error to attempt to make changes to <code>s</code> from
+         * this callback.
+         *
+         * @param s
+         * @param start
+         * @param count
+         * @param after
+         */
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        /**
+         * This method is called to notify you that, within <code>s</code>,
+         * the <code>count</code> characters beginning at <code>start</code>
+         * have just replaced old text that had length <code>before</code>.
+         * It is an error to attempt to make changes to <code>s</code> from
+         * this callback.
+         *
+         * @param s
+         * @param start
+         * @param before
+         * @param count
+         */
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            searchAnime(String.valueOf(s));
+
+        }
+
+        /**
+         * This method is called to notify you that, somewhere within
+         * <code>s</code>, the text has been changed.
+         * It is legitimate to make further changes to <code>s</code> from
+         * this callback, but be careful not to get yourself into an infinite
+         * loop, because any changes you make will cause this method to be
+         * called again recursively.
+         * (You are not told where the change took place because other
+         * afterTextChanged() methods may already have made other changes
+         * and invalidated the offsets.  But if you need to know here,
+         * you can use in {@link #onTextChanged}
+         * to mark your place and then look up from here where the span
+         * ended up.
+         *
+         * @param s
+         */
+        @Override
+        public void afterTextChanged(Editable s) {
+
         }
     }
 }

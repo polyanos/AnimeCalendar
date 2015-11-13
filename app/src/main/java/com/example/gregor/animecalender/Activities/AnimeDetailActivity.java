@@ -1,28 +1,36 @@
 package com.example.gregor.animecalender.Activities;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
-import com.example.gregor.animecalender.Utility.AnilistApi;
-import com.example.gregor.animecalender.Utility.ImageLoader;
+import com.example.gregor.animecalender.Adapter.AnimeCharacterListAdapter;
 import com.example.gregor.animecalender.Domain.Anime;
 import com.example.gregor.animecalender.Domain.ImageToLoad;
+import com.example.gregor.animecalender.Exceptions.AuthorizeException;
 import com.example.gregor.animecalender.R;
+import com.example.gregor.animecalender.Utility.AniDBApi;
+import com.example.gregor.animecalender.Utility.AnilistApi;
+import com.example.gregor.animecalender.Utility.Interface.Api;
+import com.example.gregor.animecalender.Utility.FileCache;
+import com.example.gregor.animecalender.Utility.ImageLoader;
 import com.example.gregor.animecalender.View.ExpandableHeightListView;
 
 import java.text.DateFormat;
@@ -30,6 +38,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class AnimeDetailActivity extends AppCompatActivity {
+    private static final String TAG = "AnimeDetailActivity";
+    private ArrayAdapter<String> gerneListAdapter;
+    private AnimeCharacterListAdapter animeCharacterListAdapter;
+    private Api api;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +56,30 @@ public class AnimeDetailActivity extends AppCompatActivity {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
         }
+    }
 
-        new GetAnimeData(this, String.valueOf(this.getIntent().getIntExtra("ANIME_ID", 0))).execute();
+    public void onResume(){
+        super.onResume();
+        Intent recievedIntent = this.getIntent();
+        int animeId = recievedIntent.getIntExtra("ANIME_ID", 0);
+        String animeApi = recievedIntent.getStringExtra("ANIME_API");
+
+        switch (animeApi) {
+            case AnilistApi.NAME:
+                api = new AnilistApi(this.getApplicationContext());
+                break;
+            case AniDBApi.NAME:
+                api = new AniDBApi(this.getApplicationContext());
+                break;
+        }
+
+        gerneListAdapter = new ArrayAdapter<>(this, R.layout.anime_gerne);
+        animeCharacterListAdapter = new AnimeCharacterListAdapter(this, api);
+        ((ListView) findViewById(R.id.anime_detail_gerne_list)).setAdapter(gerneListAdapter);
+        ((ListView) findViewById(R.id.anime_detail_character_list)).setAdapter(animeCharacterListAdapter);
+
+        Log.d(TAG, "Creating detail page for id: " + animeId + ". Api being used is the " + animeApi + " api");
+        new GetAnimeData(this, String.valueOf(animeId), animeApi).execute();
     }
 
     @Override
@@ -65,19 +99,20 @@ public class AnimeDetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    class GetAnimeData extends AsyncTask <Void, Void, Object[]>{
+    class GetAnimeData extends AsyncTask<Void, Void, Object[]> {
         String animeId;
-        String animeJapTitle;
+        String animeApi;
         ProgressDialog mDialog;
-        Context context;
+        Activity context;
 
-        GetAnimeData(Context context, String animeId) {
+        GetAnimeData(Activity context, String animeId, String animeApi) {
             this.animeId = animeId;
+            this.animeApi = animeApi;
             this.context = context;
         }
 
         @Override
-        public void onPreExecute(){
+        public void onPreExecute() {
             mDialog = new ProgressDialog(context);
             mDialog.setMessage("Please wait...");
             mDialog.show();
@@ -101,11 +136,15 @@ public class AnimeDetailActivity extends AppCompatActivity {
         protected Object[] doInBackground(Void... params) {
             ImageLoader imageLoader = new ImageLoader(context);
             Object[] objects = new Object[2];
-            AnilistApi anilistApi = new AnilistApi();
-            anilistApi.getAccessCode();
 
-            Anime anime = anilistApi.getFullAnimeData(animeId);
-            Bitmap image = imageLoader.getImage(new ImageToLoad(anime.getImageFileName(), anime.getImageUrl(), true));
+            try {
+                api.authorizeApi();
+            } catch (AuthorizeException ex) {
+                Log.e(TAG, "Authorization failure");
+            }
+
+            Anime anime = api.getFullAnimeData(animeId);
+            Bitmap image = imageLoader.getImage(new ImageToLoad(String.valueOf(anime.getId()), new FileCache(null).getStandardAnimeImageDirectory(), anime.getImageUrl(), true), api);
             objects[0] = anime;
             objects[1] = image;
             return objects;
@@ -114,31 +153,55 @@ public class AnimeDetailActivity extends AppCompatActivity {
         /**
          * <p>Runs on the UI thread after {@link #doInBackground}. The
          * specified result is the value returned by {@link #doInBackground}.</p>
-         *
+         * <p/>
          * <p>This method won't be invoked if the task was cancelled.</p>
          *
          * @param objects The result of the operation computed by {@link #doInBackground}.
-         *
          * @see #onPreExecute
          * @see #doInBackground
          * @see #onCancelled(Object)
          */
         @Override
-        protected void onPostExecute(Object... objects){
-            Anime anime = (Anime)objects[0];
-            Bitmap image = (Bitmap)objects[1];
+        protected void onPostExecute(Object... objects) {
+            Anime anime = (Anime) objects[0];
+            Bitmap image = (Bitmap) objects[1];
             DateFormat dateFormat = SimpleDateFormat.getDateInstance();
-            ArrayAdapter<String> gerneListAdapter = new ArrayAdapter<String>(context, R.layout.anime_gerne);
-            gerneListAdapter.addAll(anime.getGerneArray());
-            ((ImageView) findViewById(R.id.anime_detail_image)).setImageDrawable(new BitmapDrawable(context.getResources(),image));
-            ((TextView)findViewById(R.id.anime_detail_anime_title)).setText(anime.getRomanjiTitle());
-            ((TextView)findViewById(R.id.anime_detail_total_episodes)).setText(String.valueOf(anime.getEpisodeTotal()));
-            ((TextView)findViewById(R.id.anime_detail_anime_start_date)).setText(dateFormat.format(new Date(anime.getStartDate())));
-            ((TextView)findViewById(R.id.anime_detail_anime_description)).setText(anime.getDescription());
-            ((TextView)findViewById(R.id.anime_detail_anime_japanese_title)).setText(anime.getJapaneseTitle());
-            ExpandableHeightListView gerneView = (ExpandableHeightListView)findViewById(R.id.anime_detail_gerne_list);
-            gerneView.setAdapter(gerneListAdapter);
-            gerneView.setExpanded(true);
+            if (anime.getGerneArray() != null) {
+                TextView gerneTitleView = (TextView) findViewById(R.id.anime_detail_gerne_list_title);
+                switch (context.getIntent().getStringExtra("ANIME_API")) {
+                    case AniDBApi.NAME:
+                        gerneTitleView.setText(R.string.anime_detail_tag_title);
+                        break;
+                    case AnilistApi.NAME:
+                        gerneTitleView.setText(R.string.anime_detail_genre_title);
+                        break;
+                }
+
+                gerneListAdapter.addAll(anime.getGerneArray());
+            }
+            if (anime.getAnimeCharacters() != null) {
+                animeCharacterListAdapter.addCharacters(anime.getAnimeCharacters());
+            }
+
+            ((ImageView) findViewById(R.id.anime_detail_image)).setImageDrawable(new BitmapDrawable(context.getResources(), image));
+            ((TextView) findViewById(R.id.anime_detail_anime_title)).setText(anime.getRomanjiTitle());
+            ((TextView) findViewById(R.id.anime_detail_total_episodes)).setText(String.valueOf(anime.getEpisodeTotal()) + " episodes");
+            ((TextView) findViewById(R.id.anime_detail_anime_start_date)).setText(dateFormat.format(new Date(anime.getStartDate())));
+            if (anime.getDescription().isEmpty()) {
+                findViewById(R.id.anime_detail_anime_description_title).setVisibility(View.GONE);
+                findViewById(R.id.anime_detail_anime_description).setVisibility(View.GONE);
+            } else {
+                ((TextView) findViewById(R.id.anime_detail_anime_description)).setText(anime.getDescription());
+            }
+            findViewById(R.id.anime_detail_anime_japanese_title).setVisibility(View.GONE);
+            ((ExpandableHeightListView) findViewById(R.id.anime_detail_gerne_list)).setExpanded(true);
+            if(anime.getAnimeCharacters() == null || anime.getAnimeCharacters().isEmpty()){
+                findViewById(R.id.anime_detail_character_list_title).setVisibility(View.GONE);
+                findViewById(R.id.anime_detail_character_list).setVisibility(View.GONE);
+            } else {
+                ((ExpandableHeightListView) findViewById(R.id.anime_detail_character_list)).setExpanded(true);
+            }
+
             mDialog.dismiss();
         }
     }

@@ -2,28 +2,100 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="com.example.gregor.animecalender.Activities.MainActivity">
+    android:orientation="vertical">
 
     <include layout="@layout/toolbar_layout" />
 
-    <LinearLayout
+    <android.support.v4.widget.DrawerLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/anime_season_list_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="5dp"
-            android:text="@string/anime_season_list_title"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
-
-        <ListView
-            android:id="@+id/anime_season_list"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="0dp" />
-    </LinearLayout>
+            android:orientation="vertical"
+            tools:context="com.example.gregor.animecalender.Activities.MainActivity">
+
+
+            <RelativeLayout
+                android:id="@+id/anime_season_search_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/anime_season_search_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentStart="true"
+                    android:text="@string/anime_season_search_title"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
+
+                <TextView
+                    android:id="@+id/anime_season_search_year_title"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/anime_season_search_title"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/anime_season_search_year_title"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textSize="15dp" />
+
+                <Spinner
+                    android:id="@+id/anime_season_search_year_spinner"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/anime_season_search_title"
+                    android:layout_toEndOf="@id/anime_season_search_year_title" />
+
+                <TextView
+                    android:id="@+id/anime_season_search_season_title"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/anime_season_search_year_spinner"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/anime_season_search_season_title"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textSize="15dp" />
+
+                <Spinner
+                    android:id="@+id/anime_season_search_season_spinner"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/anime_season_search_year_spinner"
+                    android:layout_toEndOf="@id/anime_season_search_season_title" />
+
+                <Button
+                    android:id="@+id/anime_season_search_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/anime_season_search_season_spinner"
+                    android:onClick="onSearchSeaonAnimeClick"
+                    android:text="@string/anime_season_search_button" />
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/anime_season_list_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="5dp"
+                android:text="@string/anime_season_list_title"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <ListView
+                android:id="@+id/anime_season_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="0dp" />
+        </LinearLayout>
+
+        <include layout="@layout/navigation_drawer" />
+    </android.support.v4.widget.DrawerLayout>
 </LinearLayout>

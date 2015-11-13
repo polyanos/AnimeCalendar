@@ -1,28 +1,33 @@
 package com.example.gregor.animecalender.Domain;
 
+import java.util.List;
+
 /**
  * Created by Gregor on 26-10-2015.
  */
 public class Anime {
-    private String japaneseTitle, romanjiTitle, description, imageUrl, imageFileName;
-    private String[] gerneArray;
-    private AnimeCharacter[] animeCharacters;
+    private String japaneseTitle, romanjiTitle, description, imageUrl;
+    private List<String> gerneArray;
+    private List<AnimeCharacter> animeCharacters;
     private int id, episodeTotal;
     private long startDate, endDate;
-    private boolean imageDownloaded;
+
+    public Anime(int id){
+        this.japaneseTitle = "";
+        this.romanjiTitle = "";
+        this.id = id;
+    }
 
     public Anime(String japaneseTitle, String romanjiTitle) {
         this.japaneseTitle = japaneseTitle;
         this.romanjiTitle = romanjiTitle;
         this.id = 0;
-        setFileName();
     }
 
     public Anime(String japaneseTitle, String romanjiTitle, int id) {
         this.japaneseTitle = japaneseTitle;
         this.romanjiTitle = romanjiTitle;
         this.id = id;
-        setFileName();
     }
 
     public String getDescription() {
@@ -39,10 +44,6 @@ public class Anime {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
-    }
-
-    public String getImageFileName() {
-        return imageFileName;
     }
 
     public int getEpisodeTotal() {
@@ -81,28 +82,31 @@ public class Anime {
         return id;
     }
 
-    public String[] getGerneArray() {
+    public List<String> getGerneArray() {
         return gerneArray;
     }
 
-    public void setGerneArray(String[] gerneArray) {
+    public void setGerneArray(List<String> gerneArray) {
         this.gerneArray = gerneArray;
     }
 
     public void setId(int id) {
         this.id = id;
-        setFileName();
     }
 
-    public AnimeCharacter[] getAnimeCharacters() {
+    public List<AnimeCharacter> getAnimeCharacters() {
         return animeCharacters;
     }
 
-    public void setAnimeCharacters(AnimeCharacter[] animeCharacters) {
-        this.animeCharacters = animeCharacters;
+    public void setJapaneseTitle(String japaneseTitle) {
+        this.japaneseTitle = japaneseTitle;
     }
 
-    private void setFileName() {
-        imageFileName = String.valueOf(id) + ".jpg";
+    public void setRomanjiTitle(String romanjiTitle) {
+        this.romanjiTitle = romanjiTitle;
+    }
+
+    public void setAnimeCharacters(List<AnimeCharacter> animeCharacters) {
+        this.animeCharacters = animeCharacters;
     }
 }

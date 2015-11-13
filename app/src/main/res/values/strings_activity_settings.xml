@@ -1,0 +1,25 @@
+<resources>
+    <string name="title_activity_settings">Application settings</string>
+    <string name="pref_show_images_title">Show images?</string>
+    <string name="pref_show_images_summary_off">Images wont be shown anymore</string>
+    <string name="pref_show_images_summary_on">Images will be shown, this can consume extra mobile data.</string>
+    <string name="pref_show_images_text_on">On</string>
+    <string name="pref_show_image_text_off">Off</string>
+    <string name="pref_language_title">Language</string>
+    <string name="pref_header_general">General settings</string>
+    <string name="pref_header_storage">Cache options</string>
+    <string name="pref_clear_image_cache_summary">Delete all cached image files.</string>
+    <string name="pref_clear_image_cache_title">Clear image cache</string>
+    <string name="pref_clear_xml_cache_title">Clear XML cache</string>
+    <string name="pref_clear_xml_cache">Clear XML cache</string>
+    <string name="pref_clear_xml_cache_summary">Delete all cached xml files.</string>
+    <string name="pref_clear_image_cache">Clear cache</string>
+    <string-array name="pref_language_titles">
+        <item>English</item>
+        <item>Dutch</item>
+    </string-array>
+    <string-array name="pref_language_values">
+        <item>en</item>
+        <item>nl</item>
+    </string-array>
+</resources>

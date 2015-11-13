@@ -8,20 +8,9 @@
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_main_close"
+        android:id="@+id/action_anime_list_search"
         android:orderInCategory="100"
-        android:title="@string/action_close"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_main_view_list"
-        android:icon="@drawable/ic_action_list"
-        android:title="@string/action_list"
-        android:onClick="loadList"
-        app:showAsAction="ifRoom"/>
-    <item
-        android:id="@+id/action_main_view_calander"
-        android:icon="@drawable/ic_action_calander"
-        android:title="@string/action_calender"
-        android:onClick="loadCalander"
-        app:showAsAction="ifRoom"/>
+        android:title="@string/action_list_search"
+        android:icon="@drawable/ic_action_search"
+        app:showAsAction="always" />
 </menu>

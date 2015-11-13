@@ -2,20 +2,43 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="com.example.gregor.animecalender.Activities.AnimeListActivity">
-
-    <include layout="@layout/toolbar_layout"/>
-
-    <TextView
+    android:orientation="vertical">
+    <include layout="@layout/toolbar_layout" />
+    <android.support.v4.widget.DrawerLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/anime_list_title"/>
+        android:layout_height="match_parent">
 
-    <ListView
-        android:id="@+id/anime_list_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
 
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:orientation="vertical"
+            tools:context="com.example.gregor.animecalender.Activities.AnimeListActivity">
+
+            <EditText
+                android:id="@+id/anime_list_search_textbox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/anime_list_search_hint"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/anime_list_list_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/anime_list_title"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <ListView
+                android:id="@+id/anime_list_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+        </LinearLayout>
+        <include layout="@layout/navigation_drawer"/>
+    </android.support.v4.widget.DrawerLayout>
 </LinearLayout>

@@ -1,5 +1,7 @@
 package com.example.gregor.animecalender.Utility;
 
+import android.util.Log;
+
 import com.example.gregor.animecalender.Domain.Anime;
 
 import org.xml.sax.Attributes;
@@ -16,6 +18,7 @@ import java.util.List;
 public class AnimeTitleHandler extends DefaultHandler {
     boolean isRomajiTitle, isJapTitle;
     String romajiTitle, japTitle;
+    int id;
     Anime anime;
     List<Anime> foundAnime;
 
@@ -37,7 +40,7 @@ public class AnimeTitleHandler extends DefaultHandler {
      */
     @Override
     public void endDocument() throws SAXException {
-        System.out.println("Retrieved " + foundAnime.size() + " anime.");
+        Log.d("AnimeTitleHandler", "Retrieved " + foundAnime.size() + " anime.");
     }
 
     /**
@@ -72,6 +75,11 @@ public class AnimeTitleHandler extends DefaultHandler {
                 isJapTitle = false;
                 romajiTitle = "";
                 japTitle = "";
+                try {
+                    id = Integer.parseInt(attributes.getValue("aid"));
+                } catch (NumberFormatException ex) {
+                    id = 0;
+                }
                 break;
             case "title":
                 attrValue = attributes.getValue("type");
@@ -116,8 +124,8 @@ public class AnimeTitleHandler extends DefaultHandler {
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
         if (qName.equals("anime")) {
-            if (!japTitle.isEmpty() && !romajiTitle.isEmpty()) {
-                anime = new Anime(japTitle, romajiTitle);
+            if (!japTitle.isEmpty() && !romajiTitle.isEmpty() && id != 0) {
+                anime = new Anime(japTitle, romajiTitle, id);
                 foundAnime.add(anime);
             }
         }
@@ -151,7 +159,7 @@ public class AnimeTitleHandler extends DefaultHandler {
         }
     }
 
-    public List<Anime> getRetrievedAnime(){
+    public List<Anime> getRetrievedAnime() {
         return foundAnime;
     }
 }

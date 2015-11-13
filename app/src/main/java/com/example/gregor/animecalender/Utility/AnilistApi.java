@@ -9,6 +9,7 @@ package com.example.gregor.animecalender.Utility;
  * and open the template in the editor.
  */
 
+import android.content.Context;
 import android.text.Html;
 import android.util.Log;
 
@@ -18,11 +19,15 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.example.gregor.animecalender.Domain.Anime;
 import com.example.gregor.animecalender.Domain.AnimeCharacter;
+import com.example.gregor.animecalender.Domain.FileToLoad;
 import com.example.gregor.animecalender.Domain.Parameter;
+import com.example.gregor.animecalender.Exceptions.AuthorizeException;
 import com.example.gregor.animecalender.Exceptions.HttpResponseException;
+import com.example.gregor.animecalender.Utility.Interface.Api;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -37,42 +42,56 @@ import java.util.List;
 /**
  * @author Gregor
  */
-public class AnilistApi {
+public class AnilistApi implements Api {
 
+    public static final String NAME = "AniList";
+    private static final String FOLDER_PREFIX = "anilist";
     private static final String TAG = "AnilistApi";
-    private static final String prefix = "https://anilist.co/api/";
+    private static final String PREFIX = "https://anilist.co/api/";
+    private static final String IMAGE_PREFIX = "http://anilist.co/img/dir/anime/reg/";
+    private static final String CLIENT_ID = "polyanos-6bzkg";
+    private static final String CLIENT_SECRET = "t7XXJN3OFZmDvR6m389zBPkwkW";
 
     private String accessToken;
-    private String desctription;
+    private Context applicationContext;
 
-    public void getAccessCode() {
+    public AnilistApi(Context applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
+    public void authorizeApi() throws AuthorizeException {
         String url = "auth/access_token";
         JsonObject jsonResult;
 
         List<Parameter> parameters = new ArrayList<>();
         parameters.add(new Parameter("grant_type", "client_credentials"));
-        parameters.add(new Parameter("client_id", "polyanos-6bzkg"));
-        parameters.add(new Parameter("client_secret", "t7XXJN3OFZmDvR6m389zBPkwkW"));
+        parameters.add(new Parameter("client_id", CLIENT_ID));
+        parameters.add(new Parameter("client_secret", CLIENT_SECRET));
 
         try {
-            HttpURLConnection conn = openConnection(URLFactory.createParameterizedURL(prefix + url, parameters), "POST");
-            jsonResult = (JsonObject) getJsonResponse(conn);
-
-            accessToken = jsonResult.getString("access_token", "");
+            HttpURLConnection conn = openConnection(URLFactory.createParameterizedURL(PREFIX + url, parameters), "POST");
+            if (conn.getResponseCode() == 200) {
+                jsonResult = (JsonObject) getJsonResponse(conn.getInputStream());
+                accessToken = jsonResult.getString("access_token", "");
+            } else {
+                throw new HttpResponseException();
+            }
         } catch (MalformedURLException ex) {
-            System.err.println("The api url for requesting the acces token is incorrect.");
+            Log.wtf(TAG, "Developer needs to check the generated url is incorrect. (" + ex.getMessage() + ")");
         } catch (IOException | HttpResponseException ex) {
-            System.err.println("An error has occured while establishing the connection, the following error message was given: ");
-            System.err.println(ex.getMessage());
+            Log.e(TAG, "An error has occured while establishing the connection, the following error message was given: " + ex.getMessage());
+
+            throw new AuthorizeException(ex);
         }
     }
 
     /**
-     * Gets "small anime models" from the anilist api for each anime that adheres to the supplied parameters.
+     * Gets "small anime models" from the anilist api for each anime that adheres to the supplied parameters. This data won't be cached momentarily.
+     * The retrieved data will be parsed and then stored in a Anime object.
      *
-     * @param season
-     * @param year
-     * @param type
+     * @param season The season it should look up. (Winter, Spring, Summer, Spring)
+     * @param year The year it should look up. (xxxx)
+     * @param type The type it should loom up. (Tv, Movie, Ova)
      * @return
      */
     public List<Anime> getSeasonAnime(String season, String year, String type) {
@@ -91,8 +110,13 @@ public class AnilistApi {
         int id;
 
         try {
-            HttpURLConnection conn = openConnection(URLFactory.createParameterizedURL(prefix + url, parameters), "GET");
-            jsonResult = (JsonArray) getJsonResponse(conn);
+            HttpURLConnection conn = openConnection(URLFactory.createParameterizedURL(PREFIX + url, parameters), "GET");
+            Log.d(TAG, "Contacting the api with the following url: " + conn.getURL().toString());
+            if (conn.getResponseCode() == 200) {
+                jsonResult = (JsonArray) getJsonResponse(conn.getInputStream());
+            } else {
+                throw new HttpResponseException("The server response was: " + conn.getResponseCode());
+            }
 
         } catch (MalformedURLException ex) {
             System.err.println("The api url for requesting anime season data is incorrect.");
@@ -114,17 +138,49 @@ public class AnilistApi {
         return animeList;
     }
 
+    /**
+     * Return the directory which should be used for this api for caching purposes.
+     * @return
+     */
+    @Override
+    public String getApiDirectory() {
+        return FOLDER_PREFIX;
+    }
+
+    /**
+     * Retrieves anime data from the AniList api.
+     * It will parse the data and return the parsed data in an Anime object.
+     * If this is the first time this data has been retrieved (or if the cache has been cleared) this method will also write a copy of the retrieved data to the file system)
+     * If the data already exists in the filesystem it will use that data and skip contacting the server.
+     * @param animeId The id of the anime that will be retrieved.
+     * @return An filled Anime object.
+     */
     public Anime getFullAnimeData(String animeId) {
         String url = "anime/" + animeId + "/characters";
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
         Anime anime = null;
-
-        List<Parameter> parameter = new ArrayList<>();
-        parameter.add(new Parameter("access_token", accessToken));
+        InputStream fileInput = null;
+        InputStream webInput = null;
 
         try {
-            HttpURLConnection conn = openConnection(URLFactory.createParameterizedURL(prefix + url, parameter), "GET");
-            JsonObject jsonObject = (JsonObject) getJsonResponse(conn);
+            FileCache fileCache = new FileCache(applicationContext);
+            FileToLoad fileToLoad = new FileToLoad(animeId, fileCache.getStandardXmlDirectory());
+            JsonObject jsonObject;
+            if ((fileInput = fileCache.loadXmlFile(fileToLoad, this)) != null) {
+                jsonObject = (JsonObject) getJsonResponse(fileInput);
+            } else {
+                List<Parameter> parameter = new ArrayList<>();
+                parameter.add(new Parameter("access_token", accessToken));
+                HttpURLConnection conn = openConnection(URLFactory.createParameterizedURL(PREFIX + url, parameter), "GET");
+                if (conn.getResponseCode() == 200) {
+                    webInput = conn.getInputStream();
+                    fileCache.saveXmlFile(webInput, fileToLoad, this);
+                    fileInput = fileCache.loadXmlFile(fileToLoad, this);
+                    jsonObject = (JsonObject) getJsonResponse(fileInput);
+                } else {
+                    throw new HttpResponseException("The server response was: " + conn.getResponseCode());
+                }
+            }
 
             String japanese_title = getStringValue(jsonObject, "title_japanese", "");
             String romanji_title = getStringValue(jsonObject, "title_romaji", "");
@@ -132,8 +188,8 @@ public class AnilistApi {
             String description = Html.fromHtml(getStringValue(jsonObject, "description", "")).toString();
             String startdateString = getStringValue(jsonObject, "start_date", "");
             String enddateString = getStringValue(jsonObject, "end_date", "");
-            String[] gerneList = getGerneList(jsonObject);
-            AnimeCharacter[] animeCharacters = getCharacters(jsonObject);
+            List<String> gerneList = getGerneList(jsonObject);
+            List<AnimeCharacter> animeCharacters = getCharacters(jsonObject);
             int id = getIntValue(jsonObject, "id", 0);
             int total_episodes = getIntValue(jsonObject, "total_episodes", 0);
             long startdate = startdateString.equals("") ? 0 : dateFormat.parse(startdateString).getTime();
@@ -155,6 +211,13 @@ public class AnilistApi {
         } catch (ParseException ex) {
             System.err.println("An error has occured while parsing a date, the following error message was given: ");
             System.err.println(ex.getMessage());
+        } finally {
+            try {
+                if (webInput != null) webInput.close();
+                if (fileInput != null) fileInput.close();
+            } catch (Exception ignored) {
+                Log.e(TAG, "Failed to close one or more streams.");
+            }
         }
 
         return anime;
@@ -167,20 +230,9 @@ public class AnilistApi {
         return conn;
     }
 
-    private JsonValue getJsonResponse(HttpURLConnection connection) throws IOException, HttpResponseException {
-        StringBuilder strBuilder = new StringBuilder();
-        String line;
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        if (connection.getResponseCode() == 200) {
-            while ((line = in.readLine()) != null) {
-                strBuilder.append(line);
-            }
-            in.close();
-            return Json.parse(strBuilder.toString());
-        } else {
-            throw new HttpResponseException("Bad responsecode recieved. Check if the connection is correctly made and all parameters are correct.");
-        }
+    private JsonValue getJsonResponse(InputStream inputStream) throws IOException, HttpResponseException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+        return Json.parse(in);
     }
 
     private String getStringValue(JsonValue jsonValue, String jsonValueName, String defaultValue) {
@@ -225,38 +277,38 @@ public class AnilistApi {
         }
     }
 
-    private String[] getGerneList(JsonObject jsonObject) {
+    private List<String> getGerneList(JsonObject jsonObject) {
         JsonValue jsonValue = jsonObject.get("genres");
         JsonArray jsonArray;
-        String[] stringArray;
+        List<String> stringArray;
         if (jsonValue != null) {
             if (jsonValue.isArray()) {
                 jsonArray = jsonValue.asArray();
                 int jsonArraySize = jsonArray.size();
-                stringArray = new String[jsonArraySize];
+                stringArray = new ArrayList<>(jsonArraySize);
                 for (int i = 0; i < jsonArraySize; i++) {
                     String gerne = getStringValue(jsonArray.get(i), "", "");
                     Log.i(TAG, "Gerne '" + gerne + "' retrieved.");
-                    stringArray[i] = gerne;
+                    stringArray.add(gerne);
                 }
 
                 return stringArray;
             }
         }
 
-        return new String[0];
+        return new ArrayList<>();
     }
 
-    private AnimeCharacter[] getCharacters(JsonObject jsonObject) {
-        AnimeCharacter[] animeCharacters;
+    private List<AnimeCharacter> getCharacters(JsonObject jsonObject) {
+        List<AnimeCharacter> animeCharacters;
         JsonArray characterArray = (JsonArray) jsonObject.get("characters");
         if (characterArray == null || !characterArray.isArray()) {
-            return new AnimeCharacter[0];
+            return new ArrayList<>();
         }
 
         int size = characterArray.size();
-        animeCharacters = new AnimeCharacter[size];
-        String firstName, lastName;
+        animeCharacters = new ArrayList<>(size);
+        String firstName, lastName, imageUrl;
         int id;
         for (int i = 0; i < size; i++) {
             JsonValue animeCharValue = characterArray.get(i);
@@ -284,10 +336,19 @@ public class AnilistApi {
                     id = 0;
                 }
 
-                Log.i(TAG, "Character '" + firstName + " " + lastName + "' retrieved.");
-                animeCharacters[i] = new AnimeCharacter(firstName, lastName, id);
+                value = animeCharObject.get("image_url_lge");
+                if (value != null && value.isString()) {
+                    imageUrl = value.asString();
+                } else {
+                    imageUrl = "";
+                }
+
+                Log.i(TAG, "Character '" + lastName + " " + firstName + "' retrieved.");
+                AnimeCharacter character = new AnimeCharacter(firstName + " " + lastName, id);
+                character.setUrl(imageUrl);
+                animeCharacters.add(character);
             } else {
-                animeCharacters[i] = new AnimeCharacter("", "", 0);
+                animeCharacters.add(new AnimeCharacter("", 0));
             }
         }
 

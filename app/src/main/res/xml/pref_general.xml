@@ -1,0 +1,12 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <SwitchPreference
+        android:key="show_images"
+        android:title="@string/pref_show_images_title"
+        android:defaultValue="true"
+        android:summaryOff="@string/pref_show_images_summary_off"
+        android:summaryOn="@string/pref_show_images_summary_on"
+        android:textOn="@string/pref_show_images_text_on"
+        android:textOff="@string/pref_show_image_text_off"
+        />
+
+</PreferenceScreen>
