@@ -175,7 +175,6 @@ public class SettingsActivity extends PreferenceActivity {
             // updated to reflect the new value, per the Android Design
             // guidelines.
             bindPreferenceSummaryToValue(findPreference("show_images"));
-            bindPreferenceSummaryToValue(findPreference("language"));
         }
     }
 
